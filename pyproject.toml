@@ -1,0 +1,10 @@
+[project]
+name = "buurman-en-buurman-deep-dive"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "google-cloud-aiplatform>=1.72.0",
+    "google-generativeai>=0.8.3",
+]

@@ -1,0 +1,10 @@
+[download] Finished downloading playlist: buurman en buurman alle afleveringen
+
+________________________________________________________
+Executed in  365.85 secs    fish           external
+   usr time   87.22 secs   23.64 millis   87.20 secs
+   sys time   19.33 secs    6.53 millis   19.33 secs
+
+Documents/buurman-en-buurman-deep-dive/episodes
+❯ ls | wc -l
+119
