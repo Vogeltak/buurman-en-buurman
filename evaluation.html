@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Frame Prediction Evaluator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .setup, .evaluation, .results {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .evaluation {
+            display: none;
+        }
+        .results {
+            display: none;
+        }
+        .frame-image {
+            max-width: 100%;
+            max-height: 400px;
+            margin: 20px 0;
+        }
+        .prediction {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .progress {
+            margin: 10px 0;
+        }
+        .results table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .results th, .results td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .results th {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="margin-bottom: 0;">Prediction Evaluator 5000 <sup>(tm)</sup></h1>
+    <h3 style="margin-top: 0;">Big Buurman Ltd. (BBL)</h3>
+    
+    <div class="setup" id="setup">
+        <h2>Setup</h2>
+        <label for="sampleSize">Number of frames to evaluate: </label>
+        <input type="number" id="sampleSize" value="50" min="1" max="1000">
+        <button onclick="startEvaluation()">Start Evaluation</button>
+    </div>
+
+    <div class="evaluation" id="evaluation">
+        <h2>Evaluation</h2>
+        <div class="progress">Frame <span id="currentFrame">0</span> of <span id="totalFrames">0</span></div>
+        <img id="frameImage" class="frame-image" alt="Frame">
+        <div class="prediction">
+            Predictions:
+            <ul>
+                <li>Pat: <span id="patPrediction"></span></li>
+                <li>Mat: <span id="matPrediction"></span></li>
+            </ul>
+        </div>
+        <div>
+            <button onclick="recordEvaluation(true)">Correct</button>
+            <button onclick="recordEvaluation(false)">Incorrect</button>
+        </div>
+    </div>
+
+    <div class="results" id="results">
+        <h2>Results</h2>
+        <div id="resultsContent"></div>
+        <button onclick="resetEvaluation()">Start Over</button>
+    </div>
+
+    <script>
+        let frames = [];
+        let currentIndex = 0;
+        let evaluationResults = [];
+        
+        async function loadCSV() {
+            try {
+                const response = await fetch('predictions.csv');
+                const csvText = await response.text();
+                Papa.parse(csvText, {
+                    header: true,
+                    complete: function(results) {
+                        frames = results.data;
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading CSV:', error);
+                alert('Error loading CSV file');
+            }
+        }
+
+        async function startEvaluation() {
+            const sampleSize = parseInt(document.getElementById('sampleSize').value);
+            if (!frames.length) {
+                await loadCSV();
+            }
+            
+            // Randomly sample frames
+            frames = frames
+                .sort(() => Math.random() - 0.5)
+                .slice(0, sampleSize);
+            
+            currentIndex = 0;
+            evaluationResults = [];
+            
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('evaluation').style.display = 'block';
+            document.getElementById('totalFrames').textContent = sampleSize;
+            
+            showCurrentFrame();
+        }
+
+        async function showCurrentFrame() {
+            const frame = frames[currentIndex];
+            document.getElementById('currentFrame').textContent = currentIndex + 1;
+            
+            try {
+                // Load the image
+                const imageUrl = `episodes/frames/${frame.frame}`;
+                document.getElementById('frameImage').src = imageUrl;
+                
+                // Display predictions
+                document.getElementById('matPrediction').textContent = frame.mat === 'True' ? 'Yes' : 'No';
+                document.getElementById('patPrediction').textContent = frame.pat === 'True' ? 'Yes' : 'No';
+            } catch (error) {
+                console.error('Error loading image:', error);
+                document.getElementById('frameImage').src = '';
+                alert('Error loading image');
+            }
+        }
+
+        function recordEvaluation(isCorrect) {
+            evaluationResults.push({
+                frame: frames[currentIndex].frame,
+                mat: frames[currentIndex].mat,
+                pat: frames[currentIndex].pat,
+                correct: isCorrect
+            });
+            
+            currentIndex++;
+            
+            if (currentIndex >= frames.length) {
+                showResults();
+            } else {
+                showCurrentFrame();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('evaluation').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            
+            const totalEvaluated = evaluationResults.length;
+            const correctPredictions = evaluationResults.filter(r => r.correct).length;
+            const accuracy = ((correctPredictions / totalEvaluated) * 100).toFixed(2);
+            
+            let resultsHtml = `
+                <h3>Summary</h3>
+                <p>Total frames evaluated: ${totalEvaluated}</p>
+                <p>Correct predictions: ${correctPredictions}</p>
+                <p>Accuracy: ${accuracy}%</p>
+                
+                <h3>Detailed Results</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Frame</th>
+                            <th>Mat Prediction</th>
+                            <th>Pat Prediction</th>
+                            <th>Correct?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            evaluationResults.forEach(result => {
+                resultsHtml += `
+                    <tr>
+                        <td>${result.frame}</td>
+                        <td>${result.mat === 'True' ? 'Yes' : 'No'}</td>
+                        <td>${result.pat === 'True' ? 'Yes' : 'No'}</td>
+                        <td>${result.correct ? 'Yes' : 'No'}</td>
+                    </tr>
+                `;
+            });
+            
+            resultsHtml += '</tbody></table>';
+            document.getElementById('resultsContent').innerHTML = resultsHtml;
+        }
+
+        function resetEvaluation() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('setup').style.display = 'block';
+            frames = [];
+            currentIndex = 0;
+            evaluationResults = [];
+        }
+
+        // Load CSV when page loads
+        loadCSV();
+    </script>
+</body>
+</html>

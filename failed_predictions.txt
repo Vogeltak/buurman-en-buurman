@@ -1,0 +1,76 @@
+I ran:
+
+jq 'select(.response | has("candidates") | not)' predictions.jsonl
+
+And found the two errors:
+
+{
+  "status": "Internal error occurred. Failed to get generateContentResponse: {\"error\": {\"code\": 500, \"message\": \"Internal error encountered.\", \"status\": \"INTERNAL\"}}",
+  "processed_time": "2024-11-14T23:47:41.522+00:00",
+  "request": {
+    "contents": [
+      {
+        "parts": [
+          {
+            "fileData": null,
+            "text": "Determine who is in this frame from the animated series Pat & Mat. Pat wears yellow and Mat wears grey or red. Respond only with a valid JSON object following this schema:\n\n```{\"pat\": boolean,\"mat\": boolean}```"
+          },
+          {
+            "fileData": {
+              "fileUri": "gs://buurman-en-buurman-data/42_De auto-38.jpg",
+              "mimeType": "image/jpeg"
+            },
+            "text": null
+          }
+        ],
+        "role": "user"
+      }
+    ],
+    "generationConfig": {
+      "max_output_tokens": 8192,
+      "response_mime_type": "application/json",
+      "temperature": 1,
+      "top_k": 40,
+      "top_p": 0.95
+    },
+    "labels": {
+      "frame": "42_De auto-38.jpg"
+    }
+  },
+  "response": {}
+}
+{
+  "status": "Internal error occurred. Failed to get generateContentResponse: {\"error\": {\"code\": 500, \"message\": \"Internal error encountered.\", \"status\": \"INTERNAL\"}}",
+  "processed_time": "2024-11-14T23:46:46.115+00:00",
+  "request": {
+    "contents": [
+      {
+        "parts": [
+          {
+            "fileData": null,
+            "text": "Determine who is in this frame from the animated series Pat & Mat. Pat wears yellow and Mat wears grey or red. Respond only with a valid JSON object following this schema:\n\n```{\"pat\": boolean,\"mat\": boolean}```"
+          },
+          {
+            "fileData": {
+              "fileUri": "gs://buurman-en-buurman-data/67_Aquarium-90.jpg",
+              "mimeType": "image/jpeg"
+            },
+            "text": null
+          }
+        ],
+        "role": "user"
+      }
+    ],
+    "generationConfig": {
+      "max_output_tokens": 8192,
+      "response_mime_type": "application/json",
+      "temperature": 1,
+      "top_k": 40,
+      "top_p": 0.95
+    },
+    "labels": {
+      "frame": "67_Aquarium-90.jpg"
+    }
+  },
+  "response": {}
+}
